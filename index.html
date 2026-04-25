@@ -277,9 +277,74 @@ function calcStats() {
         if (!classStats[d.class]) classStats[d.class] = {};
         if (!classStats[d.class][d.subject]) classStats[d.class][d.subject] = [];
         classStats[d.class][d.subject].push(d.grade);
+        
         if (!globalStats[d.subject]) globalStats[d.subject] = [];
         globalStats[d.subject].push(d.grade);
     });
+
+    let html = "";
+
+    // 1. БЛОК ОБЩЕЙ СТАТИСТИКИ (Выводим в самом верху)
+    if (Object.keys(globalStats).length > 0) {
+        html += `<div class="stats-card">
+                    <h3 style="margin-top: 0; color: var(--primary);">Общая успеваемость (Сводка по всем классам)</h3>
+                    <table>
+                        <tr>
+                            <th>Предмет</th>
+                            <th>Средний балл</th>
+                            <th>5</th>
+                            <th>4</th>
+                            <th>3</th>
+                            <th>2</th>
+                        </tr>`;
+        
+        // Сортируем предметы по алфавиту для красоты
+        Object.keys(globalStats).sort().forEach(s => {
+            const g = globalStats[s];
+            const avg = g.reduce((a, b) => a + b, 0) / g.length;
+            
+            html += `<tr>
+                        <td><strong>${s}</strong></td>
+                        <td>${avg.toFixed(2)}</td>
+                        <td style="color: #10b981; font-weight: bold;">${g.filter(x => x == 5).length}</td>
+                        <td style="color: #3b82f6; font-weight: bold;">${g.filter(x => x == 4).length}</td>
+                        <td style="color: #f59e0b; font-weight: bold;">${g.filter(x => x == 3).length}</td>
+                        <td style="color: #ef4444; font-weight: bold;">${g.filter(x => x == 2).length}</td>
+                     </tr>`;
+        });
+        html += `</table></div>`;
+    }
+
+    // 2. БЛОК СТАТИСТИКИ ПО КАЖДОМУ КЛАССУ
+    Object.keys(classStats).sort().forEach(c => {
+        html += `<div class="stats-card">
+                    <h3 style="margin-top: 0;">Класс: ${c}</h3>
+                    <table>
+                        <tr>
+                            <th>Предмет</th>
+                            <th>Средний</th>
+                            <th>5</th>
+                            <th>4</th>
+                            <th>3</th>
+                            <th>2</th>
+                        </tr>`;
+        Object.keys(classStats[c]).forEach(s => {
+            const g = classStats[c][s], avg = g.reduce((a,b)=>a+b,0)/g.length;
+            html += `<tr>
+                        <td>${s}</td>
+                        <td>${avg.toFixed(2)}</td>
+                        <td>${g.filter(x=>x==5).length}</td>
+                        <td>${g.filter(x=>x==4).length}</td>
+                        <td>${g.filter(x=>x==3).length}</td>
+                        <td>${g.filter(x=>x==2).length}</td>
+                     </tr>`;
+        });
+        html += `</table></div>`;
+    });
+    
+    document.getElementById("statsOutput").innerHTML = html;
+    drawCharts(classStats, globalStats);
+}
 
     let html = "";
     Object.keys(classStats).sort().forEach(c => {
