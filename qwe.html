@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Система анализа успеваемости</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --radius: 12px;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        background-color: var(--bg);
+        color: var(--text-main);
+        line-height: 1.5;
+    }
+
+    .app-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .nav {
+        display: flex;
+        gap: 10px;
+        background: var(--surface);
+        padding: 12px;
+        border-radius: var(--radius);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .nav button {
+        flex: 1;
+        padding: 12px 20px;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .nav button:hover {
+        background: var(--bg);
+        color: var(--primary);
+    }
+
+    .nav button.active-nav {
+        background: var(--primary);
+        color: white;
+    }
+
+    .tab {
+        display: none;
+        background: var(--surface);
+        padding: 30px;
+        border-radius: var(--radius);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .active { display: block; }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 { margin-top: 0; font-size: 24px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; margin-bottom: 20px; }
+
+    input[type="text"], input[type="number"], input[type="file"] {
+        padding: 10px 14px; margin: 5px; border: 1px solid var(--border); border-radius: 6px; outline: none;
+    }
+
+    button.action-btn {
+        background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;
+    }
+
+    button.delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+    .table-responsive { overflow-x: auto; margin-top: 20px; }
+
+    table { border-collapse: collapse; width: 100%; min-width: 600px; }
+
+    td, th { border-bottom: 1px solid var(--border); padding: 12px 16px; text-align: left; }
+
+    th { background-color: var(--bg); font-weight: 600; color: var(--text-muted); font-size: 12px; text-transform: uppercase; }
+
+    .stats-card { background: var(--bg); padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+    
+    canvas { max-height: 400px; margin-bottom: 20px; }
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+    <div class="nav">
+        <button class="active-nav" onclick="openTab('load', this)">Импорт</button>
+        <button onclick="openTab('edit', this)">Редактор</button>
+        <button onclick="openTab('statsTable', this)">Аналитика</button>
+        <button onclick="openTab('statsChart', this)">Визуализация</button>
+        <button onclick="openTab('about', this)">О программе</button>
+    </div>
+
+    <div id="load" class="tab active">
+        <h2>Загрузка данных</h2>
+        <div class="stats-card">
+            <input type="file" id="fileInput" accept=".xlsx, .csv">
+        </div>
+        <div class="table-responsive"><table id="dataTable"></table></div>
+    </div>
+
+    <div id="edit" class="tab">
+        <h2>Редактор журнала</h2>
+        <div class="stats-card">
+            <input type="text" id="name" placeholder="ФИО">
+            <input type="text" id="class" placeholder="Класс">
+            <input type="text" id="subject" placeholder="Предмет">
+            <input type="number" id="grade" placeholder="Оценка" min="2" max="5">
+            <button class="action-btn" onclick="addRecord()">Добавить</button>
+            <button class="action-btn" style="background: #10b981;" onclick="saveFile()">Экспорт в Excel</button>
+        </div>
+        <div class="table-responsive"><table id="editTable"></table></div>
+    </div>
+
+    <div id="statsTable" class="tab">
+        <h2>Статистические отчеты</h2>
+        <div id="statsOutput"></div>
+    </div>
+
+    <div id="statsChart" class="tab">
+        <h2>Графики успеваемости</h2>
+        <div id="chartsContainer"></div>
+    </div>
+
+    <div id="about" class="tab">
+        <h2>О разработчике</h2>
+        <div class="stats-card">
+            <p><strong>Разработчик:</strong> Влад [Впиши Фамилию]</p>
+            <p><strong>Учебное заведение:</strong> СибГУТИ</p>
+            <p><strong>Группа:</strong> [Твоя Группа]</p>
+        </div>
+    </div>
+</div>
+
+<script>
+let data = [];
+
+function openTab(id, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active-nav'));
+    btn.classList.add('active-nav');
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    const ext = file.name.split('.').pop().toLowerCase();
+
+    reader.onload = function(e) {
+        if (ext === 'xlsx') {
+            const workbook = XLSX.read(e.target.result, { type: 'array' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            parseXLSX(rows);
+        } else {
+            parseCSV(e.target.result);
+        }
+    };
+    if (ext === 'xlsx') reader.readAsArrayBuffer(file); else reader.readAsText(file, 'UTF-8');
+});
+
+function parseXLSX(rows) {
+    data = [];
+    if (rows.length < 2) return;
+    const h = rows[0].map(v => String(v).toLowerCase());
+    const ni = h.findIndex(v => v.includes("имя")), si = h.findIndex(v => v.includes("фам")), 
+          pi = h.findIndex(v => v.includes("отч")), ci = h.findIndex(v => v.includes("класс"));
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i]; if (!row[ci]) continue;
+        const fio = `${row[si]||""} ${row[ni]||""} ${row[pi]||""}`.trim();
+        for (let j = ci + 1; j < h.length; j++) {
+            const g = Number(rows[i][j]);
+            if (!isNaN(g) && g > 0) data.push({ name: fio, class: String(row[ci]), subject: rows[0][j], grade: g });
+        }
+    }
+    renderTable();
+}
+
+function parseCSV(text) {
+    data = [];
+    const rows = text.split(/\r?\n/).filter(r => r.trim() !== "");
+    const del = rows[0].includes(";") ? ";" : ",";
+    for (let i = 1; i < rows.length; i++) {
+        const c = rows[i].split(del).map(v => v.trim());
+        if (c.length >= 4) data.push({ name: c[0], class: c[1], subject: c[2], grade: Number(c[3]) });
+    }
+    renderTable();
+}
+
+function renderTable() {
+    let subjects = [...new Set(data.map(d => d.subject))];
+    let students = {};
+    data.forEach(d => {
+        const k = d.name + "||" + d.class;
+        if (!students[k]) students[k] = { name: d.name, class: d.class, g: {} };
+        students[k].g[d.subject] = d.grade;
+    });
+
+    let html = `<tr><th>ФИО</th><th>Класс</th>${subjects.map(s => `<th>${s}</th>`).join("")}<th>Действия</th></tr>`;
+    Object.values(students).forEach(s => {
+        html += `<tr><td>${s.name}</td><td>${s.class}</td>`;
+        subjects.forEach(sub => {
+            const g = s.g[sub] || "-";
+            const color = g == 5 ? "#10b981" : (g == 2 ? "#ef4444" : "inherit");
+            html += `<td style="color:${color}; font-weight:bold">${g}</td>`;
+        });
+        html += `<td><button class="delete-btn" onclick="deleteStudent('${s.name}','${s.class}')">Удалить</button></td></tr>`;
+    });
+    document.getElementById("dataTable").innerHTML = html;
+    document.getElementById("editTable").innerHTML = html;
+    calcStats();
+}
+
+function deleteStudent(n, c) {
+    if (confirm("Удалить ученика?")) { data = data.filter(d => !(d.name === n && d.class === c)); renderTable(); }
+}
+
+function addRecord() {
+    const n = document.getElementById("name").value, c = document.getElementById("class").value,
+          s = document.getElementById("subject").value, g = Number(document.getElementById("grade").value);
+    if (n && c && s && g) { data.push({ name: n, class: c, subject: s, grade: g }); renderTable(); }
+}
+
+function saveFile() {
+    let subjects = [...new Set(data.map(d => d.subject))];
+    let rows = [["ФИО", "Класс", ...subjects]];
+    let students = {};
+    data.forEach(d => {
+        const k = d.name + "||" + d.class;
+        if (!students[k]) students[k] = { n: d.name, c: d.class, g: {} };
+        students[k].g[d.subject] = d.grade;
+    });
+    Object.values(students).forEach(s => rows.push([s.n, s.c, ...subjects.map(sub => s.g[sub] || "")]));
+    const ws = XLSX.utils.aoa_to_sheet(rows), wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Журнал");
+    XLSX.writeFile(wb, "Журнал_оценок.xlsx");
+}
+
+function calcStats() {
+    const classStats = {}, globalStats = {};
+    data.forEach(d => {
+        if (!classStats[d.class]) classStats[d.class] = {};
+        if (!classStats[d.class][d.subject]) classStats[d.class][d.subject] = [];
+        classStats[d.class][d.subject].push(d.grade);
+        if (!globalStats[d.subject]) globalStats[d.subject] = [];
+        globalStats[d.subject].push(d.grade);
+    });
+
+    let html = "";
+    Object.keys(classStats).sort().forEach(c => {
+        html += `<div class="stats-card"><h3>Класс: ${c}</h3><table><tr><th>Предмет</th><th>Средний</th><th>5</th><th>4</th><th>3</th><th>2</th></tr>`;
+        Object.keys(classStats[c]).forEach(s => {
+            const g = classStats[c][s], avg = g.reduce((a,b)=>a+b,0)/g.length;
+            html += `<tr><td>${s}</td><td>${avg.toFixed(2)}</td><td>${g.filter(x=>x==5).length}</td><td>${g.filter(x=>x==4).length}</td><td>${g.filter(x=>x==3).length}</td><td>${g.filter(x=>x==2).length}</td></tr>`;
+        });
+        html += `</table></div>`;
+    });
+    document.getElementById("statsOutput").innerHTML = html;
+    drawCharts(classStats, globalStats);
+}
+
+function drawCharts(classStats, globalStats) {
+    const container = document.getElementById("chartsContainer");
+    container.innerHTML = "";
+
+    // 1. Общий график
+    const gDiv = document.createElement("div"); gDiv.className = "stats-card";
+    gDiv.innerHTML = "<h3>Сводная аналитика (Все классы)</h3><canvas id='c_global'></canvas>";
+    container.appendChild(gDiv);
+    new Chart(document.getElementById('c_global'), {
+        type: 'bar', data: {
+            labels: Object.keys(globalStats),
+            datasets: [{ label: 'Средний балл', data: Object.keys(globalStats).map(k => globalStats[k].reduce((a,b)=>a+b,0)/globalStats[k].length), backgroundColor: '#4f46e5' }]
+        }, options: { scales: { y: { beginAtZero: true, max: 5 } } }
+    });
+
+    // 2. Графики по классам
+    Object.keys(classStats).forEach((c, i) => {
+        const cDiv = document.createElement("div"); cDiv.className = "stats-card";
+        const id = `c_class_${i}`;
+        cDiv.innerHTML = `<h3>Аналитика: ${c} класс</h3><canvas id='${id}'></canvas>`;
+        container.appendChild(cDiv);
+        new Chart(document.getElementById(id), {
+            type: 'bar', data: {
+                labels: Object.keys(classStats[c]),
+                datasets: [{ label: 'Средний балл', data: Object.keys(classStats[c]).map(k => classStats[c][k].reduce((a,b)=>a+b,0)/classStats[c][k].length), backgroundColor: '#10b981' }]
+            }, options: { scales: { y: { beginAtZero: true, max: 5 } } }
+        });
+    });
+}
+</script>
+</body>
+</html>
