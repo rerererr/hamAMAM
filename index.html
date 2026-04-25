@@ -117,6 +117,7 @@
         <button onclick="openTab('statsTable', this)">Аналитика</button>
         <button onclick="openTab('statsChart', this)">Визуализация</button>
         <button onclick="openTab('about', this)">О программе</button>
+        <button onclick="openTab('max', this)">Мы в MAX</button>
     </div>
 
     <div id="load" class="tab active">
@@ -150,23 +151,33 @@
         <div id="chartsContainer"></div>
     </div>
 
-  <div id="about" class="tab">
+    <div id="about" class="tab">
         <h2>О разработчике</h2>
         <div class="stats-card">
             <p><strong>Разработчик:</strong> Сипкин Данил Вадимович</p>
             <p><strong>Группа:</strong> БС-303</p>
+            <p><strong>TG:</strong> @xshws</p>
         </div>
 
+        <h2>Блок бэтаприколов</h2>
         <div class="stats-card" style="margin-top: 20px; text-align: center;">
-            <h3 style="margin-top: 0; color: var(--primary);">вкусность 67</h3>
+            <h3 style="margin-top: 0; color: #00FA9A;">вкусность 67</h3>
             <video width="100%" controls style="max-width: 700px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 <source src="video.mp4" type="video/mp4">
-                Ваш браузер не поддерживает 67 видео.
+                Ваш браузер не поддерживает видео.
             </video>
         </div>
     </div>
 
-<script>
+    <div id="max" class="tab">
+        <h2>Мы в MAX</h2>
+        <div class="stats-card">
+            <p>Меллстрооой такой типо ам ам ам</p>
+            <img src="https://i.imgur.com/placeholder.png" alt="Mellstroy" style="max-width: 100%; border-radius: 8px;">
+        </div>
+    </div>
+
+</div> <script>
 let data = [];
 
 function openTab(id, btn) {
@@ -285,32 +296,31 @@ function calcStats() {
 
     let html = "";
 
-    // 1. БЛОК ОБЩЕЙ СТАТИСТИКИ (Выводим в самом верху)
+    // 1. БЛОК ОБЩЕЙ СТАТИСТИКИ
     if (Object.keys(globalStats).length > 0) {
         html += `<div class="stats-card">
                     <h3 style="margin-top: 0; color: var(--primary);">Общая успеваемость (Сводка по всем классам)</h3>
-                    <table>
+                    <table style="table-layout: fixed; width: 100%;">
                         <tr>
-                            <th>Предмет</th>
-                            <th>Средний балл</th>
-                            <th>5</th>
-                            <th>4</th>
-                            <th>3</th>
-                            <th>2</th>
+                            <th style="width: 30%;">Предмет</th>
+                            <th style="width: 20%; text-align: center;">Средний балл</th>
+                            <th style="width: 12.5%; text-align: center;">5</th>
+                            <th style="width: 12.5%; text-align: center;">4</th>
+                            <th style="width: 12.5%; text-align: center;">3</th>
+                            <th style="width: 12.5%; text-align: center;">2</th>
                         </tr>`;
         
-        // Сортируем предметы по алфавиту для красоты
         Object.keys(globalStats).sort().forEach(s => {
             const g = globalStats[s];
             const avg = g.reduce((a, b) => a + b, 0) / g.length;
             
             html += `<tr>
                         <td><strong>${s}</strong></td>
-                        <td>${avg.toFixed(2)}</td>
-                        <td style="color: #10b981; font-weight: bold;">${g.filter(x => x == 5).length}</td>
-                        <td style="color: #3b82f6; font-weight: bold;">${g.filter(x => x == 4).length}</td>
-                        <td style="color: #f59e0b; font-weight: bold;">${g.filter(x => x == 3).length}</td>
-                        <td style="color: #ef4444; font-weight: bold;">${g.filter(x => x == 2).length}</td>
+                        <td style="text-align: center;">${avg.toFixed(2)}</td>
+                        <td style="color: #10b981; font-weight: bold; text-align: center;">${g.filter(x => x == 5).length}</td>
+                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${g.filter(x => x == 4).length}</td>
+                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${g.filter(x => x == 3).length}</td>
+                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${g.filter(x => x == 2).length}</td>
                      </tr>`;
         });
         html += `</table></div>`;
@@ -319,25 +329,25 @@ function calcStats() {
     // 2. БЛОК СТАТИСТИКИ ПО КАЖДОМУ КЛАССУ
     Object.keys(classStats).sort().forEach(c => {
         html += `<div class="stats-card">
-                    <h3 style="margin-top: 0;">Класс: ${c}</h3>
-                    <table>
+                    <h3 style="margin-top: 0; color: var(--primary);">Класс: ${c}</h3>
+                    <table style="table-layout: fixed; width: 100%;">
                         <tr>
-                            <th>Предмет</th>
-                            <th>Средний</th>
-                            <th>5</th>
-                            <th>4</th>
-                            <th>3</th>
-                            <th>2</th>
+                            <th style="width: 30%;">Предмет</th>
+                            <th style="width: 20%; text-align: center;">Средний балл</th>
+                            <th style="width: 12.5%; text-align: center;">5</th>
+                            <th style="width: 12.5%; text-align: center;">4</th>
+                            <th style="width: 12.5%; text-align: center;">3</th>
+                            <th style="width: 12.5%; text-align: center;">2</th>
                         </tr>`;
         Object.keys(classStats[c]).forEach(s => {
             const g = classStats[c][s], avg = g.reduce((a,b)=>a+b,0)/g.length;
             html += `<tr>
-                        <td>${s}</td>
-                        <td>${avg.toFixed(2)}</td>
-                        <td>${g.filter(x=>x==5).length}</td>
-                        <td>${g.filter(x=>x==4).length}</td>
-                        <td>${g.filter(x=>x==3).length}</td>
-                        <td>${g.filter(x=>x==2).length}</td>
+                        <td><strong>${s}</strong></td>
+                        <td style="text-align: center;">${avg.toFixed(2)}</td>
+                        <td style="color: #10b981; font-weight: bold; text-align: center;">${g.filter(x=>x==5).length}</td>
+                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${g.filter(x=>x==4).length}</td>
+                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${g.filter(x=>x==3).length}</td>
+                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${g.filter(x=>x==2).length}</td>
                      </tr>`;
         });
         html += `</table></div>`;
