@@ -165,6 +165,7 @@
             </video>
         </div>
     </div>
+
 <script>
 let data = [];
 
@@ -342,19 +343,6 @@ function calcStats() {
         html += `</table></div>`;
     });
     
-    document.getElementById("statsOutput").innerHTML = html;
-    drawCharts(classStats, globalStats);
-}
-
-    let html = "";
-    Object.keys(classStats).sort().forEach(c => {
-        html += `<div class="stats-card"><h3>Класс: ${c}</h3><table><tr><th>Предмет</th><th>Средний</th><th>5</th><th>4</th><th>3</th><th>2</th></tr>`;
-        Object.keys(classStats[c]).forEach(s => {
-            const g = classStats[c][s], avg = g.reduce((a,b)=>a+b,0)/g.length;
-            html += `<tr><td>${s}</td><td>${avg.toFixed(2)}</td><td>${g.filter(x=>x==5).length}</td><td>${g.filter(x=>x==4).length}</td><td>${g.filter(x=>x==3).length}</td><td>${g.filter(x=>x==2).length}</td></tr>`;
-        });
-        html += `</table></div>`;
-    });
     document.getElementById("statsOutput").innerHTML = html;
     drawCharts(classStats, globalStats);
 }
