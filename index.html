@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>хамАМАМ</title>
+<title>Журнал оценок</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
@@ -91,12 +91,16 @@
     button.action-btn {
         background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s;
     }
+    
+    button.action-btn:hover { background: var(--primary-hover); }
 
+    .btn-group { display: flex; gap: 5px; }
     button.delete-btn { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    button.edit-btn { background: #f59e0b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
     .table-responsive { overflow-x: auto; margin-top: 20px; }
 
-    table { border-collapse: collapse; width: 100%; min-width: 600px; }
+    table { border-collapse: collapse; width: 100%; min-width: 800px; }
 
     td, th { border-bottom: 1px solid var(--border); padding: 12px 16px; text-align: left; }
 
@@ -104,7 +108,13 @@
 
     .stats-card { background: var(--bg); padding: 20px; border-radius: 8px; margin-bottom: 24px; }
     
-    canvas { max-height: 400px; margin-bottom: 20px; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;}
+    @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
+    
+    canvas { max-height: 350px; }
+    
+    .profile-wrap { display: flex; gap: 20px; align-items: center; }
+    .profile-photo { width: 120px; height: 120px; background: #cbd5e1; border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px; text-align: center;}
 </style>
 </head>
 
@@ -112,22 +122,25 @@
 
 <div class="app-container">
     <div class="nav">
-        <button class="active-nav" onclick="openTab('load', this)">Импорт</button>
-        <button onclick="openTab('edit', this)">Редактор</button>
+        <button class="active-nav" onclick="openTab('load', this)" id="nav-load">Импорт</button>
+        <button onclick="openTab('edit', this)" id="nav-edit">Редактор</button>
         <button onclick="openTab('statsTable', this)">Аналитика</button>
         <button onclick="openTab('statsChart', this)">Визуализация</button>
+        <button onclick="openTab('help', this)">Помощь</button>
         <button onclick="openTab('about', this)">О программе</button>
-        <button onclick="openTab('max', this)">Мы в MAX</button>
     </div>
 
+    <!-- Вкладка Импорт -->
     <div id="load" class="tab active">
         <h2>Загрузка данных</h2>
         <div class="stats-card">
-            <input type="file" id="fileInput" accept=".xlsx, .csv">
+            <p style="margin-top:0; color: var(--text-muted);">Поддерживаемые форматы: .csv, .txt, .xlsx</p>
+            <input type="file" id="fileInput" accept=".xlsx, .csv, .txt">
         </div>
         <div class="table-responsive"><table id="dataTable"></table></div>
     </div>
 
+    <!-- Вкладка Редактор -->
     <div id="edit" class="tab">
         <h2>Редактор журнала</h2>
         <div class="stats-card">
@@ -135,58 +148,69 @@
             <input type="text" id="class" placeholder="Класс">
             <input type="text" id="subject" placeholder="Предмет">
             <input type="number" id="grade" placeholder="Оценка" min="2" max="5">
-            <button class="action-btn" onclick="addRecord()">Добавить</button>
+            <button class="action-btn" onclick="addRecord()">Сохранить запись</button>
             <button class="action-btn" style="background: #10b981;" onclick="saveFile()">Экспорт в Excel</button>
         </div>
         <div class="table-responsive"><table id="editTable"></table></div>
     </div>
 
+    <!-- Вкладка Табличная статистика -->
     <div id="statsTable" class="tab">
         <h2>Статистические отчеты</h2>
         <div id="statsOutput"></div>
     </div>
 
+    <!-- Вкладка Графики -->
     <div id="statsChart" class="tab">
         <h2>Графики успеваемости</h2>
         <div id="chartsContainer"></div>
     </div>
 
+    <!-- Вкладка Помощь -->
+    <div id="help" class="tab">
+        <h2>Справка по работе с приложением</h2>
+        <div class="stats-card">
+            <p><strong>Импорт:</strong> Позволяет загрузить исходные данные об успеваемости в форматах <code>.csv</code>, <code>.txt</code> или <code>.xlsx</code>. Файл должен содержать столбцы с ФИО, классом и предметами.</p>
+            <p><strong>Редактор:</strong> В этой вкладке можно просмотреть текущий журнал. Вы можете добавлять новые оценки вручную или изменять/удалять существующие записи учеников. Также доступна кнопка сохранения текущего журнала в Excel файл.</p>
+            <p><strong>Аналитика:</strong> Автоматически рассчитывает средний балл, медиану, а также количество и процент учеников, получивших конкретные оценки (5, 4, 3, 2). Отчеты формируются как в целом по школе, так и отдельно по каждому классу.</p>
+            <p><strong>Визуализация:</strong> Графическое представление табличных данных. Включает столбчатые диаграммы средних и медианных баллов, а также графики распределения оценок для наглядности.</p>
+        </div>
+    </div>
+
+    <!-- Вкладка О программе -->
     <div id="about" class="tab">
+	<h2>О программе</h2>
+	<div class="stats-card">
+	     <strong>Крутая программа крутецкая крутость</strong><br>
+		 <strong>Ну да</strong>
+    </div>
         <h2>О разработчике</h2>
-        <div class="stats-card">
-            <p><strong>Разработчик:</strong> Сипкин Данил Вадимович</p>
-            <p><strong>Группа:</strong> БС-303</p>
-            <p><strong>TG:</strong> @xshws</p>
+        <div class="stats-card profile-wrap">   
+	    <div class="profile-photo">
+           <img src="photo.jpg" alt="Фото разработчика" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" onerror="this.style.display='none'; this.parentNode.innerHTML='Фото не найдено'">
         </div>
-
-        <h2>Блок бэтаприколов</h2>
-        <div class="stats-card" style="margin-top: 20px; text-align: center;">
-            <h3 style="margin-top: 0; color: #00FA9A;">вкусность 67</h3>
-            <video width="100%" controls style="max-width: 700px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <source src="video.mp4" type="video/mp4">
-                Ваш браузер не поддерживает видео.
-            </video>
+        <div>
+			
+            <div>
+                <p><strong>Разработчик:</strong> Сипкин Данил Вадимович</p>
+                <p><strong>Группа:</strong> БС-303</p>
+                <p><strong>Telegram:</strong> @xshws</p>
+            </div>
         </div>
     </div>
+</div>
 
-    <div id="max" class="tab">
-        <h2>Мы в MAX</h2>
-        <div class="stats-card">
-            <p>Меллстрооой такой типо ам ам ам</p>
-            <iframe src="https://assets.pinterest.com/ext/embed.html?id=582301426876234627" height="560" width="345" frameborder="0" scrolling="no" ></iframe>
-        </div>
-    </div>
-
-</div> <script>
+<script>
 let data = [];
 
 function openTab(id, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active-nav'));
-    btn.classList.add('active-nav');
+    if(btn) btn.classList.add('active-nav');
 }
 
+// Загрузка файлов
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -199,6 +223,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
             parseXLSX(rows);
         } else {
+            // И для CSV, и для TXT используем текстовый парсер
             parseCSV(e.target.result);
         }
     };
@@ -251,23 +276,56 @@ function renderTable() {
             const color = g == 5 ? "#10b981" : g == 4 ? "#3b82f6" : g == 3 ? "#f59e0b" : g == 2 ? "#ef4444" : "inherit";
             html += `<td style="color:${color}; font-weight:bold">${g}</td>`;
         });
-        html += `<td><button class="delete-btn" onclick="deleteStudent('${s.name}','${s.class}')">Удалить</button></td></tr>`;
+        html += `<td>
+            <div class="btn-group">
+                <button class="edit-btn" onclick="editStudent('${s.name}','${s.class}')">Редакт.</button>
+                <button class="delete-btn" onclick="deleteStudent('${s.name}','${s.class}')">Удалить</button>
+            </div>
+        </td></tr>`;
     });
     document.getElementById("dataTable").innerHTML = html;
     document.getElementById("editTable").innerHTML = html;
     calcStats();
 }
 
+// Редактирование (переносит данные ученика в форму для добавления/изменения оценок)
+function editStudent(n, c) {
+    document.getElementById("name").value = n;
+    document.getElementById("class").value = c;
+    document.getElementById("subject").value = "";
+    document.getElementById("grade").value = "";
+    openTab('edit', document.getElementById('nav-edit'));
+}
+
+// Удаление ученика целиком
 function deleteStudent(n, c) {
     if (confirm("Удалить ученика?")) { data = data.filter(d => !(d.name === n && d.class === c)); renderTable(); }
 }
 
+// Добавление или обновление оценки
 function addRecord() {
-    const n = document.getElementById("name").value, c = document.getElementById("class").value,
-          s = document.getElementById("subject").value, g = Number(document.getElementById("grade").value);
-    if (n && c && s && g) { data.push({ name: n, class: c, subject: s, grade: g }); renderTable(); }
+    const n = document.getElementById("name").value.trim();
+    const c = document.getElementById("class").value.trim();
+    const s = document.getElementById("subject").value.trim();
+    const g = Number(document.getElementById("grade").value);
+    
+    if (n && c && s && g >= 2 && g <= 5) { 
+        // Ищем, есть ли уже такая запись (перезаписываем или добавляем)
+        const existingIndex = data.findIndex(d => d.name === n && d.class === c && d.subject === s);
+        if (existingIndex !== -1) {
+            data[existingIndex].grade = g;
+        } else {
+            data.push({ name: n, class: c, subject: s, grade: g }); 
+        }
+        renderTable(); 
+        document.getElementById("subject").value = "";
+        document.getElementById("grade").value = "";
+    } else {
+        alert("Пожалуйста, заполните все поля корректно (оценка от 2 до 5).");
+    }
 }
 
+// Экспорт в Excel
 function saveFile() {
     let subjects = [...new Set(data.map(d => d.subject))];
     let rows = [["ФИО", "Класс", ...subjects]];
@@ -283,6 +341,22 @@ function saveFile() {
     XLSX.writeFile(wb, "Журнал_оценок.xlsx");
 }
 
+// Расчет медианы
+function getMedian(arr) {
+    if (arr.length === 0) return 0;
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// Расчет процентов
+function getCountAndPercent(arr, val) {
+    const count = arr.filter(x => x == val).length;
+    const percent = arr.length > 0 ? ((count / arr.length) * 100).toFixed(1) : 0;
+    return `${count} <span style="font-weight:normal; font-size:11px; color:#94a3b8;">(${percent}%)</span>`;
+}
+
+// Табличная статистика (Среднее, Медиана, Количество, Проценты)
 function calcStats() {
     const classStats = {}, globalStats = {};
     data.forEach(d => {
@@ -300,89 +374,157 @@ function calcStats() {
     if (Object.keys(globalStats).length > 0) {
         html += `<div class="stats-card">
                     <h3 style="margin-top: 0; color: var(--primary);">Общая успеваемость (Сводка по всем классам)</h3>
-                    <table style="table-layout: fixed; width: 100%;">
+                    <div class="table-responsive"><table style="min-width: 900px;">
                         <tr>
-                            <th style="width: 30%;">Предмет</th>
-                            <th style="width: 20%; text-align: center;">Средний балл</th>
-                            <th style="width: 12.5%; text-align: center;">5</th>
-                            <th style="width: 12.5%; text-align: center;">4</th>
-                            <th style="width: 12.5%; text-align: center;">3</th>
-                            <th style="width: 12.5%; text-align: center;">2</th>
+                            <th>Предмет</th>
+                            <th style="text-align: center;">Средний балл</th>
+                            <th style="text-align: center;">Медиана</th>
+                            <th style="text-align: center;">Оценка 5 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 4 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 3 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 2 (шт/%)</th>
                         </tr>`;
         
         Object.keys(globalStats).sort().forEach(s => {
             const g = globalStats[s];
             const avg = g.reduce((a, b) => a + b, 0) / g.length;
+            const median = getMedian(g);
             
             html += `<tr>
                         <td><strong>${s}</strong></td>
-                        <td style="text-align: center;">${avg.toFixed(2)}</td>
-                        <td style="color: #10b981; font-weight: bold; text-align: center;">${g.filter(x => x == 5).length}</td>
-                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${g.filter(x => x == 4).length}</td>
-                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${g.filter(x => x == 3).length}</td>
-                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${g.filter(x => x == 2).length}</td>
+                        <td style="text-align: center; font-weight: bold;">${avg.toFixed(2)}</td>
+                        <td style="text-align: center; font-weight: bold; color: #6366f1;">${median}</td>
+                        <td style="color: #10b981; font-weight: bold; text-align: center;">${getCountAndPercent(g, 5)}</td>
+                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${getCountAndPercent(g, 4)}</td>
+                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${getCountAndPercent(g, 3)}</td>
+                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${getCountAndPercent(g, 2)}</td>
                      </tr>`;
         });
-        html += `</table></div>`;
+        html += `</table></div></div>`;
     }
 
-    // 2. БЛОК СТАТИСТИКИ ПО КАЖДОМУ КЛАССУ
+    // 2. БЛОК СТАТИСТИКИ ПО КЛАССАМ
     Object.keys(classStats).sort().forEach(c => {
         html += `<div class="stats-card">
                     <h3 style="margin-top: 0; color: var(--primary);">Класс: ${c}</h3>
-                    <table style="table-layout: fixed; width: 100%;">
+                    <div class="table-responsive"><table style="min-width: 900px;">
                         <tr>
-                            <th style="width: 30%;">Предмет</th>
-                            <th style="width: 20%; text-align: center;">Средний балл</th>
-                            <th style="width: 12.5%; text-align: center;">5</th>
-                            <th style="width: 12.5%; text-align: center;">4</th>
-                            <th style="width: 12.5%; text-align: center;">3</th>
-                            <th style="width: 12.5%; text-align: center;">2</th>
+                            <th>Предмет</th>
+                            <th style="text-align: center;">Средний балл</th>
+                            <th style="text-align: center;">Медиана</th>
+                            <th style="text-align: center;">Оценка 5 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 4 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 3 (шт/%)</th>
+                            <th style="text-align: center;">Оценка 2 (шт/%)</th>
                         </tr>`;
         Object.keys(classStats[c]).forEach(s => {
-            const g = classStats[c][s], avg = g.reduce((a,b)=>a+b,0)/g.length;
+            const g = classStats[c][s];
+            const avg = g.reduce((a,b)=>a+b,0)/g.length;
+            const median = getMedian(g);
+            
             html += `<tr>
                         <td><strong>${s}</strong></td>
-                        <td style="text-align: center;">${avg.toFixed(2)}</td>
-                        <td style="color: #10b981; font-weight: bold; text-align: center;">${g.filter(x=>x==5).length}</td>
-                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${g.filter(x=>x==4).length}</td>
-                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${g.filter(x=>x==3).length}</td>
-                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${g.filter(x=>x==2).length}</td>
+                        <td style="text-align: center; font-weight: bold;">${avg.toFixed(2)}</td>
+                        <td style="text-align: center; font-weight: bold; color: #6366f1;">${median}</td>
+                        <td style="color: #10b981; font-weight: bold; text-align: center;">${getCountAndPercent(g, 5)}</td>
+                        <td style="color: #3b82f6; font-weight: bold; text-align: center;">${getCountAndPercent(g, 4)}</td>
+                        <td style="color: #f59e0b; font-weight: bold; text-align: center;">${getCountAndPercent(g, 3)}</td>
+                        <td style="color: #ef4444; font-weight: bold; text-align: center;">${getCountAndPercent(g, 2)}</td>
                      </tr>`;
         });
-        html += `</table></div>`;
+        html += `</table></div></div>`;
     });
     
     document.getElementById("statsOutput").innerHTML = html;
     drawCharts(classStats, globalStats);
 }
 
+// Отрисовка всей статистики в графиках
 function drawCharts(classStats, globalStats) {
     const container = document.getElementById("chartsContainer");
     container.innerHTML = "";
+    if (Object.keys(globalStats).length === 0) return;
 
-    // 1. Общий график
-    const gDiv = document.createElement("div"); gDiv.className = "stats-card";
-    gDiv.innerHTML = "<h3>Сводная аналитика (Все классы)</h3><canvas id='c_global'></canvas>";
+    // --- ОБЩИЕ ГРАФИКИ ---
+    const gDiv = document.createElement("div"); 
+    gDiv.className = "stats-card";
+    gDiv.innerHTML = `<h3 style="color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Сводная аналитика (Все классы)</h3>
+                      <div class="charts-grid">
+                          <div><h4>Средний балл и Медиана</h4><canvas id='c_global_avg'></canvas></div>
+                          <div><h4>Распределение оценок</h4><canvas id='c_global_dist'></canvas></div>
+                      </div>`;
     container.appendChild(gDiv);
-    new Chart(document.getElementById('c_global'), {
-        type: 'bar', data: {
-            labels: Object.keys(globalStats),
-            datasets: [{ label: 'Средний балл', data: Object.keys(globalStats).map(k => globalStats[k].reduce((a,b)=>a+b,0)/globalStats[k].length), backgroundColor: '#4f46e5' }]
-        }, options: { scales: { y: { beginAtZero: true, max: 5 } } }
+
+    const labels = Object.keys(globalStats);
+    
+    // График средних и медиан
+    new Chart(document.getElementById('c_global_avg'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Средний балл', data: labels.map(k => globalStats[k].reduce((a,b)=>a+b,0)/globalStats[k].length), backgroundColor: '#4f46e5' },
+                { label: 'Медиана', data: labels.map(k => getMedian(globalStats[k])), backgroundColor: '#6366f1', type: 'line', borderColor: '#6366f1', borderWidth: 2, fill: false }
+            ]
+        }, 
+        options: { scales: { y: { beginAtZero: true, max: 5 } } }
     });
 
-    // 2. Графики по классам
+    // График распределения (шт)
+    new Chart(document.getElementById('c_global_dist'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                { label: 'Пятерки (5)', data: labels.map(k => globalStats[k].filter(x=>x==5).length), backgroundColor: '#10b981' },
+                { label: 'Четверки (4)', data: labels.map(k => globalStats[k].filter(x=>x==4).length), backgroundColor: '#3b82f6' },
+                { label: 'Тройки (3)', data: labels.map(k => globalStats[k].filter(x=>x==3).length), backgroundColor: '#f59e0b' },
+                { label: 'Двойки (2)', data: labels.map(k => globalStats[k].filter(x=>x==2).length), backgroundColor: '#ef4444' }
+            ]
+        }, 
+        options: { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
+    });
+
+    // --- ГРАФИКИ ПО КЛАССАМ ---
     Object.keys(classStats).forEach((c, i) => {
-        const cDiv = document.createElement("div"); cDiv.className = "stats-card";
-        const id = `c_class_${i}`;
-        cDiv.innerHTML = `<h3>Аналитика: ${c} класс</h3><canvas id='${id}'></canvas>`;
+        const cDiv = document.createElement("div"); 
+        cDiv.className = "stats-card";
+        const idAvg = `c_class_avg_${i}`;
+        const idDist = `c_class_dist_${i}`;
+        
+        cDiv.innerHTML = `<h3 style="color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Аналитика: ${c} класс</h3>
+                          <div class="charts-grid">
+                              <div><h4>Средний балл</h4><canvas id='${idAvg}'></canvas></div>
+                              <div><h4>Распределение оценок</h4><canvas id='${idDist}'></canvas></div>
+                          </div>`;
         container.appendChild(cDiv);
-        new Chart(document.getElementById(id), {
-            type: 'bar', data: {
-                labels: Object.keys(classStats[c]),
-                datasets: [{ label: 'Средний балл', data: Object.keys(classStats[c]).map(k => classStats[c][k].reduce((a,b)=>a+b,0)/classStats[c][k].length), backgroundColor: '#10b981' }]
-            }, options: { scales: { y: { beginAtZero: true, max: 5 } } }
+
+        const classLabels = Object.keys(classStats[c]);
+
+        new Chart(document.getElementById(idAvg), {
+            type: 'bar',
+            data: {
+                labels: classLabels,
+                datasets: [
+                    { label: 'Средний балл', data: classLabels.map(k => classStats[c][k].reduce((a,b)=>a+b,0)/classStats[c][k].length), backgroundColor: '#8b5cf6' },
+                    { label: 'Медиана', data: classLabels.map(k => getMedian(classStats[c][k])), backgroundColor: '#c4b5fd', type: 'line', borderColor: '#c4b5fd', borderWidth: 2 }
+                ]
+            }, 
+            options: { scales: { y: { beginAtZero: true, max: 5 } } }
+        });
+
+        new Chart(document.getElementById(idDist), {
+            type: 'bar',
+            data: {
+                labels: classLabels,
+                datasets: [
+                    { label: '5', data: classLabels.map(k => classStats[c][k].filter(x=>x==5).length), backgroundColor: '#10b981' },
+                    { label: '4', data: classLabels.map(k => classStats[c][k].filter(x=>x==4).length), backgroundColor: '#3b82f6' },
+                    { label: '3', data: classLabels.map(k => classStats[c][k].filter(x=>x==3).length), backgroundColor: '#f59e0b' },
+                    { label: '2', data: classLabels.map(k => classStats[c][k].filter(x=>x==2).length), backgroundColor: '#ef4444' }
+                ]
+            }, 
+            options: { scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } } }
         });
     });
 }
